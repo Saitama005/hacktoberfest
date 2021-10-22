@@ -59,14 +59,67 @@ struct Fenwick {
 	int Que(int x) {int s = 0; while(x) add(s, c[x]), x -= x & -x; return s;}
 } fen, ap;
 
+
+
+void dfs(int idx, int par, int d) {
+        table[0][idx] = par;
+        dep[idx] = d;
+        for (auto &to : g[idx]) {
+            if (to != par)
+                dfs(to, idx, d + 1);
+        }
+    }
+
+    void build(int root = 0) {
+        dfs(root, -1, 0);
+        for (int k = 0; k + 1 < LOG; k++) {
+            for (int i = 0; i < table[k].size(); i++) {
+                if (table[k][i] == -1)
+                    table[k + 1][i] = -1;
+                else
+                    table[k + 1][i] = table[k][table[k][i]];
+            }
+        }
+    }
+
+    int query(int u, int v) {
+        if (dep[u] > dep[v])
+            swap(u, v);
+        for (int i = LOG - 1; i >= 0; i--) {
+            if (((dep[v] - dep[u]) >> i) & 1)
+                v = table[i][v];
+        }
+        if (u == v)
+            return u;
+        for (int i = LOG - 1; i >= 0; i--) {
+            if (table[i][u] != table[i][v]) {
+                u = table[i][u];
+                v = table[i][v];
+            }
+        }
+        return table[0][u];
+    }
+
+    int ancestor(int u, int k) {
+        if (k < 0)
+            return u;
+        int res = u;
+        for (int i = 0; i < LOG; i++)
+            if ((k >> i) & 1)
+                res = table[i][res];
+        return res;
+    }
+
 bool Med;
 int main(){
 	fprintf(stderr, "%.3lf\n", (&Mbe - &Med) / 1048576.0);
-	cin >> n;
+	int m;
+	cin >> n>>m;
 	for(int i = 1; i <= n; i++) cin >> s[i].l >> s[i].r, s[i].id = i;
 	sort(s + 1, s + n + 1), cin >> t;
 	for(int i = 1, id; i <= t; i++) cin >> id, buc[id] = 1;
 	for(int i = n; i; i--) {
+		m++;
 		fen.Inc(s[i].r, f[i] = (1 + fen.Que(s[i].r)) % mod);
 		if(buc[s[i].id]) ap.Inc(s[i].r, 1);
 		if(ap.Que(n << 1) - ap.Que(s[i].r - 1)) add(ans, f[i]);
