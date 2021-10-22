@@ -1,0 +1,155 @@
+//#pragma GCC target("avx2")
+//#pragma GCC optimize("O3")
+//#pragma GCC optimize("unroll-loops,no-stack-protector,fast-math")
+#define _CRT_SECURE_NO_WARNINGS
+#include <functional>
+#include <bitset>
+#include <algorithm>
+#include <iostream>
+#include <iomanip>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <utility>
+#include <random>
+#include <string>
+#include <vector>
+#include <cstdio>
+#include <cmath>
+#include <ctime>
+#include <set>
+#include <map>
+#include <deque>
+#include <queue>
+#include <tuple>
+#include <unordered_set>
+#include <list>
+#include <array>
+#include <ctime>
+//#pragma GCC optimize("Ofast,unroll-loops,no-stack-protector,fast-math")
+//#pragma GCC optimize("O3")
+//#pragma GCC target("sse,sse2,sse3,ssse3,sse4,avx,avx2,mmx,popcnt,tune=native")
+//#pragma GCC target("sse,sse2,sse3,ssse3,sse4,avx")
+
+using namespace std;
+
+//#define int long long
+#define double long double
+typedef vector<int> vi;
+typedef pair<int, int> pi;
+typedef vector<pair<int, int>> vpi;
+#define rep(i, n) for (int i = 0; i < (n); ++i)
+#define rep1(i, n) for (int i = 1; i < (n); ++i)
+#define rep1n(i, n) for (int i = 1; i <= (n); ++i)
+#define repr(i, n) for (int i = (n) - 1; i >= 0; --i)
+#define pb push_back
+#define eb emplace_back
+#define all(a) (a).begin(), (a).end()
+#define rall(a) (a).rbegin(), (a).rend()
+#define sz(a) (int)(a.size())
+constexpr int INF = 1e9 + 30;
+constexpr long long INFll = 1e18 + 30;
+//constexpr double INFD = 1e60;
+constexpr int N = 1010;
+constexpr int MOD = 998244353;
+constexpr int al = 'z' - 'a' + 1;
+constexpr int MAXA = 1e6 + 228;
+constexpr int LOG = 31;
+
+vector<vi> g1;
+vector<vpi> g2;
+vector<vi> g3;
+vpi segs;
+int n, m;
+vector<vi> ans;
+vector<bool> used;
+vi path;
+
+bool dfs(int v, int dest) {
+    used[v] = true;
+    path.push_back(v);
+    if (v == dest) return true;
+    for (int u : g3[v]) {
+        if (!used[u]) {
+            if (dfs(u, dest)) return true;
+        }
+    }
+    path.pop_back();
+    return false;
+}
+
+void solve() {
+    cin >> n >> m;
+    g1.resize(n);
+    g2.resize(n);
+    for (int i = 0; i < m; ++i) {
+        int a, b;
+        cin >> a >> b;
+        --a; --b;
+        g1[a].push_back(b);
+        g1[b].push_back(a);
+    }
+    int q;
+    cin >> q;
+    for (int i = 0; i < q; ++i) {
+        int a, b;
+        cin >> a >> b;
+        --a; --b;
+        g2[a].emplace_back(b, i);
+        g2[b].emplace_back(a, i);
+        segs.emplace_back(a, b);
+    }
+    int cnt = 0;
+    for (int i = 0; i < n; ++i) {
+        if (g2[i].size() & 1) {
+            ++cnt;
+        }
+    }
+    if (cnt > 0) {
+        cout << "NO\n";
+        cout << cnt / 2 << "\n";
+    }
+    else {
+        cout << "YES\n";
+        used.resize(n);
+        g3.resize(n);
+        vi order;
+        order.push_back(0);
+        used[0] = true;
+        for (int i = 0; i < n; ++i) {
+            int v = order[i];
+            for (int u : g1[v]) {
+                if (!used[u]) {
+                    g3[v].push_back(u);
+                    g3[u].push_back(v);
+                    used[u] = true;
+                    order.push_back(u);
+                }
+            }
+        }
+        for (int i = 0; i < q; ++i) {
+            fill(all(used), false);
+            path.clear();
+            dfs(segs[i].first, segs[i].second);
+            cout << path.size() << "\n";
+            for (int v : path) {
+                cout << v + 1 << " ";
+            }
+            cout << "\n";
+        }
+    }
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    //freopen("balance.in", "r", stdin);
+    //freopen("balance.out", "w", stdout);
+    int t;
+    //cin >> t;
+    t = 1;
+    while (t--) {
+        solve();
+    }
+}
