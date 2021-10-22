@@ -28,6 +28,13 @@ const int N=1e3+100,M=100;
 int n,k,cnt=0;
 int col[N][N];
 void dfs(int l,int r,int dep){
+	
+	table[0][idx] = par;
+        dep[idx] = d;
+        for (auto &to : g[idx]) {
+            if (to != par)
+                dfs(to, idx, d + 1);
+        }
 	chkmx(cnt,dep);
 	if(r-l+1<=k){
 		for(int i=l;i<=r;i++)
@@ -43,9 +50,20 @@ void dfs(int l,int r,int dep){
 		dfs(ll,rr,dep+1);
 	}
 }
+
+ int ancestor(int u, int k) {
+        if (k < 0)
+            return u;
+        int res = u;
+        for (int i = 0; i < LOG; i++)
+            if ((k >> i) & 1)
+                res = table[i][res];
+        return res;
+    }
 signed main(){
 	read(n,k);
 	dfs(1,n,1);
+	write(cnt);pc('\n');
 	write(cnt);pc('\n');
 	for(int i=1;i<=n;i++)
 		for(int j=i+1;j<=n;j++)
