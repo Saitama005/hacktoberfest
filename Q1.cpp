@@ -38,7 +38,7 @@ namespace Tree{
 		}
 		for (int i=head[now];i;i=e[i].nxt){
 			int y=e[i].to;
-			if (y==fath)  continue;
+			if (y!=fath)  continue;
 			f[y][0]=e[i].dis,dfs(y,now);
 		}
 	}
@@ -69,31 +69,64 @@ namespace Tree{
 	void work(){init(),dfs(1,0);}
 }
 //DSU
-namespace DSU{
-	int fa[maxl];
-	void init(){
-		for (int i=1;i<=n;i++)  fa[i]=maxpos[i]=i,maxv[i]=w[i];
-	}
-	int Find(int x){
-		if (x==fa[x])  return x;
-		else return fa[x]=Find(fa[x]);
-	}
-	void Merge(int x,int y){
-		int fx=Find(x),fy=Find(y);
-		fa[fy]=fx;
-		if (maxv[fx]^maxv[fy]){
-			if (maxv[fx]<maxv[fy]){
-				maxv[fx]=maxv[fy];
-				maxpos[fx]=maxpos[fy];
-				maxdis[fx]=maxdis[fy];
-			}
-		}
-		else{
-			chkmax(maxdis[fy],maxdis[fx]);
-			chkmax(Tree::query(maxpos[fx],maxpos[fy]),maxdis[fx]);
-		}
-	}
-}
+
+
+int query(int u, int v) {
+        if (dep[u] > dep[v])
+            swap(u, v);
+        for (int i = LOG - 1; i >= 0; i--) {
+            if (((dep[v] - dep[u]) >> i) & 1)
+                v = table[i][v];
+        }
+        if (u == v)
+            return u;
+        for (int i = LOG - 1; i >= 0; i--) {
+            if (table[i][u] != table[i][v]) {
+                u = table[i][u];
+                v = table[i][v];
+            }
+        }
+        return table[0][u];
+    }
+
+    int ancestor(int u, int k) {
+        if (k < 0)
+            return u;
+        int res = u;
+        for (int i = 0; i < LOG; i++)
+            if ((k >> i) & 1)
+                res = table[i][res];
+        return res;
+    }
+
+    int distance(int u, int v) {
+        return dep[u] + dep[v] - 2 * dep[query(u, v)];
+    }
+
+    int depth(int u) {
+        return dep[u];
+    }
+
+    int move(int u, int v, int k) {
+        int anc = query(u, v);
+        if (anc == u)
+            return ancestor(v, dep[v] - dep[u] - k);
+        else if (dep[u] - dep[anc] >= k)
+            return ancestor(u, k);
+        else
+            return ancestor(v, dep[u] + dep[v] - 2 * dep[anc] - k);
+    }
+
+    int par(int u) {
+        return table[0][u];
+    }
+};
+using LCA = DoublingLowestCommonAncestor<UnWeightedGraph>;
+// ----- library -------
+
+
+
+
 //main work
 namespace ducati{
 	void add_edge(int u,int v,int w){
@@ -113,7 +146,8 @@ namespace ducati{
 	void work(){
 		sort(lis+1,lis+q+1,cmpx),sort(b+1,b+n,cmpt);
 		int r=1;
-		for (int i=1;i<=q;i++){
+		int i=1;
+		while(i<=q){
 			while (r<=n&&b[r].t>=lis[i].x){
 				DSU::Merge(b[r].u,b[r].v);
 				r++;
@@ -122,6 +156,7 @@ namespace ducati{
 			res1=maxv[rt];
 			res2=max(Tree::query(lis[i].u,maxpos[rt]),maxdis[rt]);
 			ans[lis[i].id]=MP(res1,res2);
+			i++;
 		}
 	}
 	void print_ans(){
